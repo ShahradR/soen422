@@ -5,6 +5,10 @@
 #include <string.h> /* memset */
 #include <stdio.h>
 #include <Wire.h>
+extern "C"{
+#include "usb_serial.h"
+};
+
 //TODO: add to a header file!
 //void forward(int);
 //void backward(int);
@@ -41,52 +45,48 @@ int secondsToCycles(int milliseconds)
 
 void setup()
 {
+  usb_init();
   
   int SLAVE_ADDRESS = 0x7;
   Wire.begin(SLAVE_ADDRESS);
   Wire.onReceive(callbackfunction);
-  //Serial.begin(38400);
-     
-	// set for 16 MHz clock, and make sure the LED is off
-	//CPU_PRESCALE(CPU_16MHz);
-	DDRB |= (1 << 5) | (1 << 6);
-	DDRC |= (1 << 5) | (1 << 6);
+       
+  // set for 16 MHz clock, and make sure the LED is off
+  //CPU_PRESCALE(CPU_16MHz);
+  DDRB |= (1 << 5) | (1 << 6);
+  DDRC |= (1 << 5) | (1 << 6);
 
-	// ====== Analog Code ====== 
-	// Set analog/digital converter to read on pin F0
-	ADMUX |= (1 << REFS0) | PIN_F0;
+  // ====== Analog Code ====== 
+  // Set analog/digital converter to read on pin F0
+  ADMUX |= (1 << REFS0) | PIN_F0;
 	
-	// Enable ADC
-	ADCSRA |= (1 << ADEN);
-	// ====================
+  // Enable ADC
+  ADCSRA |= (1 << ADEN);
+  // ====================
 
-	// Set the Waveform Generation Mode to Phase Correct PWM, and 
-	// when counting up, clear the OCR1A (LED 1) and OCR1B (LED 2)
-	// to turn it off, and turn it back on when counting down.
-	TCCR1A |= (1 << WGM11) | (1 << WGM10) 
-		   | (1 << COM1A1) | (1 << COM1B1);
+  // Set the Waveform Generation Mode to Phase Correct PWM, and 
+  // when counting up, clear the OCR1A (LED 1) and OCR1B (LED 2)
+  // to turn it off, and turn it back on when counting down.
+  TCCR1A |= (1 << WGM11) | (1 << WGM10)
+          | (1 << COM1A1) | (1 << COM1B1);
 
-	TCCR3A |= (1 << WGM31)  | (1 << WGM30)
-		   |  (1 << COM3A1) | (1 << COM3B1);
+  TCCR3A |= (1 << WGM31)  | (1 << WGM30)
+          |  (1 << COM3A1) | (1 << COM3B1);
 
-	//Set the prescalar to 8. This is done to make the blinking
-	//which controls the brightness to be as fast as possible at
-	//its highest brightness.
-	TCCR1B |= (1 << CS11);
-	TCCR3B |= (1 << CS31);
+  //Set the prescalar to 8. This is done to make the blinking
+  //which controls the brightness to be as fast as possible at
+  //its highest brightness.
+  TCCR1B |= (1 << CS11);
+  TCCR3B |= (1 << CS31);
 	
-	//Enable timer-based events
-	TIMSK1 |= (1 << TOIE1);
-	TIMSK3 |= (1 << TOIE3);
-	
+  //Enable timer-based events
+  //TIMSK1 |= (1 << TOIE1);
+  TIMSK3 |= (1 << TOIE3);	
 }
 
 void loop()
 {
-//	while (1)
-//	{
-//          //forward(500);
-//	}
+  // Do Nothing in Loop.
 }
 
 void backward(int value)
@@ -134,22 +134,18 @@ void turn(int right, int left)
 	OCR3B = 0x3FF;
 }
 
-void callbackfunction(int a){
-  //Serial.println("ijbghibkj");
+void callbackfunction(int numChars) {
   char myChar[1000];
   memset(myChar,' ',sizeof(myChar));
-  for(int i =0;i< a;i++){
-	myChar[i] = Wire.read();
-//Serial.println(myChar[i]);
-
+  for(int i =0; i< numChars; i++){
+    myChar[i] = Wire.read();
+    usb_serial_putchar(myChar[i]);
   }
-  //Serial.println("yrfhd");
-
+  
   //if(strncmp(myChar, "hl", 2) == 0)
   //{
-  hard_left(500);
+  //hard_left(500);
   //}
- 
 }
 
 
