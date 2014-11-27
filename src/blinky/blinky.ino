@@ -1,6 +1,5 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
-
 #include <avr/interrupt.h>
 #include <string.h> /* memset */
 #include <stdio.h>
@@ -9,44 +8,17 @@ extern "C"{
 #include "usb_serial.h"
 };
 
-//TODO: add to a header file!
-//void forward(int);
-//void backward(int);
-//void hard_left(int);
-//void hard_right(int);
-//void turn(int, int);
-//void callbackfunction(int a);
-
-// Teensy 2.0++
-#define F_CPU 16000000
-#define CPU_16MHz 0x00
-#define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
 
 #define SEC 1000
 #define PIN_F0 0x0
 
-int value_led_1 = 0;
-int value_led_2 = 0;
-int value_analog = 0;
 
-int value;
-
-int millisecond_led_1 = 1000;
-int millisecond_led_2 = 1000;
-int millisecond_analog = 1000;
-
-char serial_value[20];
-char serial_buffer[20];
-
-int secondsToCycles(int milliseconds)
-{
-	return milliseconds * (F_CPU / (2 * 8 * 1023)) / 1000;
-}
-
+char buffer[9];
 void setup()
 {
-  usb_init();
   
+  usb_init();
+
   int SLAVE_ADDRESS = 0x7;
   Wire.begin(SLAVE_ADDRESS);
   Wire.onReceive(callbackfunction);
@@ -58,10 +30,10 @@ void setup()
 
   // ====== Analog Code ====== 
   // Set analog/digital converter to read on pin F0
-  ADMUX |= (1 << REFS0) | PIN_F0;
+//  ADMUX |= (1 << REFS0) | PIN_F0;
 	
   // Enable ADC
-  ADCSRA |= (1 << ADEN);
+//  ADCSRA |= (1 << ADEN);
   // ====================
 
   // Set the Waveform Generation Mode to Phase Correct PWM, and 
@@ -81,7 +53,9 @@ void setup()
 	
   //Enable timer-based events
   //TIMSK1 |= (1 << TOIE1);
-  TIMSK3 |= (1 << TOIE3);	
+  //TIMSK3 |= (1 << TOIE3);
+  
+  // backward(0);	
 }
 
 void loop()
@@ -89,16 +63,19 @@ void loop()
   // Do Nothing in Loop.
 }
 
-void backward(int value)
+void forward(int value)
 {
+  serial_write("inside forward \n",15);
 	OCR1A = value;
 	OCR1B = 0x3FF;
 
 	OCR3A = 0x3FF;
 	OCR3B = value;
+ serial_write("end forward \n",12);
+ 
 }
 
-void forward(int value)
+void backward(int value)
 {
 	OCR1A = 0x3FF;
 	OCR1B = value;
@@ -135,17 +112,100 @@ void turn(int right, int left)
 }
 
 void callbackfunction(int numChars) {
+  
+  // declare variables
   char myChar[1000];
+  short space = 1;
+  char command[2];
+  char charValue[4];
+  int value =0;
+  int leftValue =0;
+  int rightValue = 0;
+  // end 
+  
+  // read the value from begalebone
   memset(myChar,' ',sizeof(myChar));
   for(int i =0; i< numChars; i++){
     myChar[i] = Wire.read();
     usb_serial_putchar(myChar[i]);
   }
+   serial_write("\n",1);
   
-  //if(strncmp(myChar, "hl", 2) == 0)
-  //{
-  //hard_left(500);
-  //}
+  // get the command
+  for (int i = 0; i < sizeof(command); i++)
+  {
+    command[i] = myChar[i];
+  }
+// 
+// // get the value
+ int counter = 0;
+  for (int i=sizeof(command) + space; ;i++ )
+  {
+     if(myChar[i] == '~')
+     {
+       value=  atoi(charValue);
+       break;
+     }else if (myChar[i] == ','){
+       
+       rightValue=  atoi(charValue);
+       memset(charValue,0,sizeof(charValue));
+       counter = 0;
+       i++;
+     }
+     
+     charValue[counter++] = myChar[i];  
+  }
+  
+  
+  
+  
+  if(strncmp(command, "hl", 2) == 0)
+  {
+    hard_left(value);
+  } else if(strncmp(command, "hr", 2) == 0)
+  {
+    hard_right(value);
+  }else if(strncmp(command, "fw", 2) == 0)
+  {
+   // forward(value);
+  }else if(strncmp(command, "bw", 2) == 0)
+  {
+    //backward(value);
+  }else if(strncmp(command, "st", 2) == 0)
+  {
+    serial_write("inside",6);
+    forward(1023);
+  }
+  else if(strncmp(command, "tr", 2) == 0)
+  {
+   
+   // turn(rightValue,value);
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  // print the value to serial
+  itoa(value,buffer,10); // 10 = base 10
+  
+  serial_write(command,2);
+  serial_write(buffer,4);
+  serial_write("\n",1);
+}
+
+
+
+
+
+void serial_write(char * ch, int charSize)
+{
+   for(int i =0; i< charSize; i++){
+    usb_serial_putchar(ch[i]);
+  }
 }
 
 
