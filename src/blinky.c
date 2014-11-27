@@ -5,6 +5,7 @@
 #include <avr/interrupt.h>
 #include <string.h> /* memset */
 #include <stdio.h>
+#include "..\include\wire\Wire.h"
 
 //TODO: add to a header file!
 void forward(int);
@@ -83,6 +84,16 @@ int main(void)
 	sei();
 
 	int firstParam;
+
+	//==========================================
+	int led = 13;
+
+	Serial.begin(38400);
+	pinMode(led, OUTPUT);
+	int SLAVE_ADDRESS = 0x7;
+
+	Wire.begin(SLAVE_ADDRESS);
+	//==========================================
 
 	loop();
 }
