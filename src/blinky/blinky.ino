@@ -113,14 +113,11 @@ void loop()
 
 void forward(int value)
 {
-  serial_write("inside forward \n",15);
 	OCR1A = value;
 	OCR1B = 0x3FF;
 
 	OCR3A = 0x3FF;
 	OCR3B = value;
- serial_write("end forward \n",12);
- 
 }
 
 void backward(int value)
@@ -152,11 +149,11 @@ void hard_left(int value)
 
 void turn(int right, int left)
 {
-	OCR1A = 0x3FF;
-	OCR1B = left;
+	OCR1A = right;
+	OCR1B = 0x3FF;
 
-	OCR3A = right;
-	OCR3B = 0x3FF;
+	OCR3A = 0x3FF ;
+	OCR3B = left;
 }
 
 void callbackfunction(int numChars) {
@@ -212,10 +209,10 @@ void callbackfunction(int numChars) {
     hard_right(value);
   }else if(strncmp(command, "fw", 2) == 0)
   {
-   // forward(value);
+    forward(value);
   }else if(strncmp(command, "bw", 2) == 0)
   {
-    //backward(value);
+    backward(value);
   }else if(strncmp(command, "st", 2) == 0)
   {
     serial_write("inside",6);
@@ -224,7 +221,7 @@ void callbackfunction(int numChars) {
   else if(strncmp(command, "tr", 2) == 0)
   {
    
-   // turn(rightValue,value);
+    turn(rightValue,value);
   }
   
   // print the value to serial
