@@ -16,7 +16,6 @@ extern "C"{
 char buffer[9];
 void setup()
 {
-  
   usb_init();
 
   int SLAVE_ADDRESS = 0x7;
@@ -30,37 +29,86 @@ void setup()
 
   // ====== Analog Code ====== 
   // Set analog/digital converter to read on pin F0
-//  ADMUX |= (1 << REFS0) | PIN_F0;
+  //ADMUX |= (1 << REFS0) | 0x1;
 	
   // Enable ADC
-//  ADCSRA |= (1 << ADEN);
+  //ADCSRA |= (1 << ADEN);
   // ====================
 
   // Set the Waveform Generation Mode to Phase Correct PWM, and 
   // when counting up, clear the OCR1A (LED 1) and OCR1B (LED 2)
   // to turn it off, and turn it back on when counting down.
   TCCR1A |= (1 << WGM11) | (1 << WGM10)
-          | (1 << COM1A1) | (1 << COM1B1);
+         | (1 << COM1A1) | (1 << COM1B1);
 
   TCCR3A |= (1 << WGM31)  | (1 << WGM30)
-          |  (1 << COM3A1) | (1 << COM3B1);
+         |  (1 << COM3A1) | (1 << COM3B1);
 
   //Set the prescalar to 8. This is done to make the blinking
   //which controls the brightness to be as fast as possible at
   //its highest brightness.
   TCCR1B |= (1 << CS11);
   TCCR3B |= (1 << CS31);
-	
-  //Enable timer-based events
-  //TIMSK1 |= (1 << TOIE1);
-  //TIMSK3 |= (1 << TOIE3);
-  
-  // backward(0);	
 }
 
 void loop()
 {
-  // Do Nothing in Loop.
+  ADCSRA |= (0 << ADEN);
+  ADCSRA |= (1 << ADEN);
+  
+  ADMUX &= 0;
+  ADMUX |= (1 << REFS0) | 0x0;
+  // Start the ADC reading.
+  ADCSRA |= (1 << ADSC);
+  while (!(ADCSRA & (1 << ADIF)));
+  
+  int value = ADC;
+  char buf[6];
+  snprintf(buf, sizeof(buf), "%d", value);
+  serial_write("A1: ", 4);
+  serial_write(buf, sizeof(buf));
+  serial_write("\t", 1);
+  
+  // Reset interrupt flag.
+  ADCSRA |= (1 << ADIF);
+  
+  ADCSRA |= (0 << ADEN);
+  ADCSRA |= (1 << ADEN);
+  
+  ADMUX &= 0;
+  ADMUX |= (1 << REFS0) | 0x1;
+  // Start the ADC reading.
+  ADCSRA |= (1 << ADSC);
+  while (!(ADCSRA & (1 << ADIF)));
+  
+  value = ADC;
+  buf[6];
+  snprintf(buf, sizeof(buf), "%d", value);
+  serial_write("A2: ", 4);
+  serial_write(buf, sizeof(buf));
+  serial_write("\t", 1);
+  
+  // Reset interrupt flag.
+  ADCSRA |= (1 << ADIF);
+  
+  ADCSRA |= (0 << ADEN);
+  ADCSRA |= (1 << ADEN);
+  
+  ADMUX &= 0;
+  ADMUX |= (1 << REFS0) | 0x2;
+  // Start the ADC reading.
+  ADCSRA |= (1 << ADSC);
+  while (!(ADCSRA & (1 << ADIF)));
+  
+  value = ADC;
+  buf[6];
+  snprintf(buf, sizeof(buf), "%d", value);
+  serial_write("A3: ", 4);
+  serial_write(buf, sizeof(buf));
+  serial_write("\n", 1);
+  
+  // Reset interrupt flag.
+  ADCSRA |= (1 << ADIF);
 }
 
 void forward(int value)
@@ -156,9 +204,6 @@ void callbackfunction(int numChars) {
      charValue[counter++] = myChar[i];  
   }
   
-  
-  
-  
   if(strncmp(command, "hl", 2) == 0)
   {
     hard_left(value);
@@ -182,13 +227,6 @@ void callbackfunction(int numChars) {
    // turn(rightValue,value);
   }
   
-  
-  
-  
-  
-  
-  
-  
   // print the value to serial
   itoa(value,buffer,10); // 10 = base 10
   
@@ -197,15 +235,10 @@ void callbackfunction(int numChars) {
   serial_write("\n",1);
 }
 
-
-
-
-
 void serial_write(char * ch, int charSize)
 {
-   for(int i =0; i< charSize; i++){
+   for(int i =0; i< charSize; i++)
+   {
     usb_serial_putchar(ch[i]);
   }
 }
-
-
