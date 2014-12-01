@@ -21,7 +21,7 @@ void setup()
   int SLAVE_ADDRESS = 0x7;
   Wire.begin(SLAVE_ADDRESS);
   Wire.onReceive(callbackfunction);
-       
+  Wire.onRequest(handlerfunction);   
   // set for 16 MHz clock, and make sure the LED is off
   //CPU_PRESCALE(CPU_16MHz);
   DDRB |= (1 << 5) | (1 << 6);
@@ -230,6 +230,11 @@ void callbackfunction(int numChars) {
   serial_write(command,2);
   serial_write(buffer,4);
   serial_write("\n",1);
+}
+
+void handlerfunction()
+{
+  Wire.write("Teens");
 }
 
 void serial_write(char * ch, int charSize)
