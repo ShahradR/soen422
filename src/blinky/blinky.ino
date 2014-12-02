@@ -21,19 +21,11 @@ void setup()
   int SLAVE_ADDRESS = 0x7;
   Wire.begin(SLAVE_ADDRESS);
   Wire.onReceive(callbackfunction);
-  Wire.onRequest(handlerfunction);   
+  Wire.onRequest(handlerFunction);   
   // set for 16 MHz clock, and make sure the LED is off
   //CPU_PRESCALE(CPU_16MHz);
   DDRB |= (1 << 5) | (1 << 6);
   DDRC |= (1 << 5) | (1 << 6);
-
-  // ====== Analog Code ====== 
-  // Set analog/digital converter to read on pin F0
-  //ADMUX |= (1 << REFS0) | 0x1;
-	
-  // Enable ADC
-  //ADCSRA |= (1 << ADEN);
-  // ====================
 
   // Set the Waveform Generation Mode to Phase Correct PWM, and 
   // when counting up, clear the OCR1A (LED 1) and OCR1B (LED 2)
@@ -51,7 +43,11 @@ void setup()
   TCCR3B |= (1 << CS31);
 }
 
-void loop()
+void loop(){
+
+}
+
+void handlerFunction()
 {
   ADCSRA |= (0 << ADEN);
   ADCSRA |= (1 << ADEN);
@@ -63,10 +59,12 @@ void loop()
   while (!(ADCSRA & (1 << ADIF)));
   
   int value = ADC;
-  char buf[6];
-  snprintf(buf, sizeof(buf), "%d", value);
+  char A1buf[5];
+  char A2buf[5];
+  char A3buf[5];
+  snprintf(A1buf, sizeof(A1buf), "%d", value);
   serial_write("A1: ", 4);
-  serial_write(buf, sizeof(buf));
+  serial_write(A1buf, sizeof(A1buf));
   serial_write("\t", 1);
   
   // Reset interrupt flag.
@@ -82,10 +80,10 @@ void loop()
   while (!(ADCSRA & (1 << ADIF)));
   
   value = ADC;
-  buf[6];
-  snprintf(buf, sizeof(buf), "%d", value);
+  A2buf[5];
+  snprintf(A2buf, sizeof(A2buf), "%d", value);
   serial_write("A2: ", 4);
-  serial_write(buf, sizeof(buf));
+  serial_write(A2buf, sizeof(A2buf));
   serial_write("\t", 1);
   
   // Reset interrupt flag.
@@ -101,12 +99,20 @@ void loop()
   while (!(ADCSRA & (1 << ADIF)));
   
   value = ADC;
-  buf[6];
-  snprintf(buf, sizeof(buf), "%d", value);
+  A3buf[5];
+  snprintf(A3buf, sizeof(A3buf), "%d", value);
   serial_write("A3: ", 4);
-  serial_write(buf, sizeof(buf));
+  serial_write(A3buf, sizeof(A3buf));
   serial_write("\n", 1);
-  
+
+  char stringToSend[17];
+  strcpy(stringToSend, A1buf);
+  strcat(stringToSend, " ");  
+  strcat(stringToSend, A2buf);  
+  strcat(stringToSend, " ");  
+  strcat(stringToSend, A3buf);  
+    
+  Wire.write(stringToSend);  
   // Reset interrupt flag.
   ADCSRA |= (1 << ADIF);
 }
@@ -230,11 +236,6 @@ void callbackfunction(int numChars) {
   serial_write(command,2);
   serial_write(buffer,4);
   serial_write("\n",1);
-}
-
-void handlerfunction()
-{
-  Wire.write("Teens");
 }
 
 void serial_write(char * ch, int charSize)
