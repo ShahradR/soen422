@@ -111,7 +111,8 @@ void handlerFunction()
   strcat(stringToSend, A2buf);  
   strcat(stringToSend, " ");  
   strcat(stringToSend, A3buf);  
-    
+  strcat(stringToSend, " ");
+  
   Wire.write(stringToSend);  
   // Reset interrupt flag.
   ADCSRA |= (1 << ADIF);
