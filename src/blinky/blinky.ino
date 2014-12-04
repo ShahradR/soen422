@@ -59,9 +59,9 @@ void handlerFunction()
   while (!(ADCSRA & (1 << ADIF)));
   
   int value = ADC;
-  char A1buf[5];
-  char A2buf[5];
-  char A3buf[5];
+  char A1buf[4];
+  char A2buf[4];
+  char A3buf[4];
   snprintf(A1buf, sizeof(A1buf), "%d", value);
   serial_write("A1: ", 4);
   serial_write(A1buf, sizeof(A1buf));
@@ -80,7 +80,6 @@ void handlerFunction()
   while (!(ADCSRA & (1 << ADIF)));
   
   value = ADC;
-  A2buf[5];
   snprintf(A2buf, sizeof(A2buf), "%d", value);
   serial_write("A2: ", 4);
   serial_write(A2buf, sizeof(A2buf));
@@ -99,13 +98,12 @@ void handlerFunction()
   while (!(ADCSRA & (1 << ADIF)));
   
   value = ADC;
-  A3buf[5];
   snprintf(A3buf, sizeof(A3buf), "%d", value);
   serial_write("A3: ", 4);
   serial_write(A3buf, sizeof(A3buf));
   serial_write("\n", 1);
 
-  char stringToSend[17];
+  char stringToSend[15];
   strcpy(stringToSend, A1buf);
   strcat(stringToSend, " ");  
   strcat(stringToSend, A2buf);  
